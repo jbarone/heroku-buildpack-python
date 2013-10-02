@@ -8,6 +8,14 @@
 # Fail fast and fail hard.
 set -eo pipefail
 
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
 # Prepend proper path for virtualenv hackery. This will be deprecated soon.
 export PATH=:/usr/local/bin:$PATH
 
@@ -18,6 +26,33 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 
 CACHED_DIRS=".heroku"
+
+LP_DIR=`cd $(dirname $0); cd ..; pwd`
+
+# Node Installation --------------------------
+
+echo "-----> Installing Node..."
+if [ ! -d "$PWD/.node" ]; then
+    mkdir $PWD/.node
+fi
+NODE_BUILDPACK_DIR=$(mktemp -d -t node.XXXXXX)
+NODE_BUILD_DIR=$PWD/.node
+git clone --quiet https://github.com/heroku/heroku-buildpack-nodejs.git $NODE_BUILDPACK_DIR
+mv $LP_DIR/vendor/package-less.json $NODE_BUILD_DIR/package.json
+$NODE_BUILDPACK_DIR/bin/compile $NODE_BUILD_DIR $CACHE_DIR
+
+export PATH=$PATH:$NODE_BUILD_DIR/bin:$NODE_BUILD_DIR/node_modules/.bin
+
+# css compilation ----------------------------
+
+echo "-----> Installing SASS..."
+if [ ! -d "$PWD/.gem" ]; then
+  mkdir $PWD/.gem
+fi
+gem install sass --no-rdoc --no-ri --install-dir "$PWD/.gem" | indent
+export GEM_PATH=$GEM_PATH:$PWD/.gem
+export PATH=$PATH:$PWD/.gem/bin
+echo "       done."
 
 # Static configurations for virtualenv caches.
 VIRTUALENV_LOC=".heroku/venv"

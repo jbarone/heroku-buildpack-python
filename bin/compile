@@ -50,8 +50,6 @@ if [ ! -d "$HOME/.gem" ]; then
   mkdir $HOME/.gem
 fi
 gem install sass --no-rdoc --no-ri --install-dir "$PWD/.gem" | indent
-export GEM_PATH=$GEM_PATH:$PWD/.gem
-set-env PATH '$PATH:$HOME/.gem/bin'
 echo "       done."
 
 # Static configurations for virtualenv caches.
@@ -261,7 +259,8 @@ bpwatch stop collectstatic
 #
 
 # Set context environment variables.
-set-env PATH '$HOME/.heroku/python/bin:$PATH'
+set-env GEM_PATH '$GEM_PATH:$HOME/.gem'
+set-env PATH '$HOME/.heroku/python/bin:$HOME/.gem/bin:$PATH'
 set-env PYTHONUNBUFFERED true
 set-env PYTHONHOME /app/.heroku/python
 set-default-env LIBRARY_PATH /app/.heroku/vendor/lib

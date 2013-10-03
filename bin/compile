@@ -29,29 +29,6 @@ CACHED_DIRS=".heroku"
 
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
-# Node Installation --------------------------
-
-echo "-----> Installing Node..."
-if [ ! -d "$PWD/.node" ]; then
-    mkdir $PWD/.node
-fi
-NODE_BUILDPACK_DIR=$(mktemp -d -t node.XXXXXX)
-NODE_BUILD_DIR=$PWD/.node
-git clone --quiet https://github.com/heroku/heroku-buildpack-nodejs.git $NODE_BUILDPACK_DIR
-mv $LP_DIR/vendor/package-less.json $NODE_BUILD_DIR/package.json
-$NODE_BUILDPACK_DIR/bin/compile $NODE_BUILD_DIR $CACHE_DIR
-
-export PATH=$PATH:$NODE_BUILD_DIR/bin:$NODE_BUILD_DIR/node_modules/.bin
-
-# css compilation ----------------------------
-
-echo "-----> Installing SASS..."
-if [ ! -d "$HOME/.gem" ]; then
-  mkdir $HOME/.gem
-fi
-gem install sass --no-rdoc --no-ri --install-dir "$PWD/.gem" | indent
-echo "       done."
-
 # Static configurations for virtualenv caches.
 VIRTUALENV_LOC=".heroku/venv"
 LEGACY_TRIGGER="lib/python2.7"
@@ -255,12 +232,36 @@ bpwatch start collectstatic
   source $BIN_DIR/steps/collectstatic
 bpwatch stop collectstatic
 
+
+# Node Installation --------------------------
+
+echo "-----> Installing Node..."
+if [ ! -d "$HOME/.heroku/.node" ]; then
+    mkdir $HOME/.heroku/.node
+fi
+NODE_BUILDPACK_DIR=$(mktemp -d -t node.XXXXXX)
+NODE_BUILD_DIR=$HOME/.heroku/.node
+git clone --quiet https://github.com/heroku/heroku-buildpack-nodejs.git $NODE_BUILDPACK_DIR
+mv $LP_DIR/vendor/package-less.json $NODE_BUILD_DIR/package.json
+$NODE_BUILDPACK_DIR/bin/compile $NODE_BUILD_DIR $CACHE_DIR
+
+export PATH=$PATH:$NODE_BUILD_DIR/bin:$NODE_BUILD_DIR/node_modules/.bin
+
+# css compilation ----------------------------
+
+echo "-----> Installing SASS..."
+if [ ! -d "$HOME/.heroku/.gem" ]; then
+  mkdir $HOME/.heroku/.gem
+fi
+gem install sass --no-rdoc --no-ri --install-dir "$HOME/.heroku/.gem" | indent
+echo "       done."
+
 # ### Finalize
 #
 
 # Set context environment variables.
 set-env GEM_PATH '$GEM_PATH:$HOME/.gem'
-set-env PATH '$HOME/.heroku/python/bin:$HOME/.gem/bin:$PATH'
+set-env PATH '$HOME/.heroku/python/bin:$HOME/.gem/bin:$HOME/.heroku/.node/bin:$HOME/.heroku/.node/node_modules/.bin:$PATH'
 set-env PYTHONUNBUFFERED true
 set-env PYTHONHOME /app/.heroku/python
 set-default-env LIBRARY_PATH /app/.heroku/vendor/lib

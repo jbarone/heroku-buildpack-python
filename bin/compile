@@ -235,7 +235,7 @@ bpwatch stop collectstatic
 # css compilation ----------------------------
 
 echo "-----> Installing SASS..."
-GEM_DIR="/app/.heroku/gems"
+GEM_DIR="$HOME/.heroku/gems"
 if [ ! -d "$GEM_DIR" ]; then
   mkdir $GEM_DIR
 fi
@@ -246,8 +246,8 @@ echo "       done."
 #
 
 # Set context environment variables.
-set-env GEM_PATH '$GEM_PATH:$GEM_DIR'
-set-env PATH '$HOME/.heroku/python/bin:$GEM_DIR/bin:$PATH'
+set-env PATH "$HOME/.heroku/python/bin:$GEM_DIR/bin:$PATH"
+set-env GEM_PATH "$GEM_PATH:$GEM_DIR"
 set-env PYTHONUNBUFFERED true
 set-env PYTHONHOME /app/.heroku/python
 set-default-env LIBRARY_PATH /app/.heroku/vendor/lib

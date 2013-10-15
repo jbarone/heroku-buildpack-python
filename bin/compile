@@ -242,11 +242,24 @@ fi
 gem install sass --no-rdoc --no-ri --install-dir "$GEM_DIR" | indent
 echo "       done."
 
+# Node Installation ----------------------------
+
+echo "-----> Installing Node..."
+if [ ! -d "$HOME/.heroku/node" ]; then
+    mkdir $HOME/.heroku/node
+fi
+NODE_BUILDPACK_DIR=$(mktemp -d -t node.XXXXXX)
+NODE_BUILD_DIR=$HOME/.heroku/node
+git clone --quiet https://github.com/heroku/heroku-buildpack-nodejs.git $NODE_BUILDPACK_DIR
+mv $LP_DIR/vendor/package-less.json $NODE_BUILD_DIR/package.json
+$NODE_BUILDPACK_DIR/bin/compile $NODE_BUILD_DIR $CACHE_DIR
+echo "       done."
+
 # ### Finalize
 #
 
 # Set context environment variables.
-set-env PATH "$HOME/.heroku/python/bin:$GEM_DIR/bin:$PATH"
+set-env PATH "$HOME/.heroku/python/bin:$GEM_DIR/bin:$HOME/.heroku/node/bin:$HOME/.heroku/node/node_modules/.bin:$PATH"
 set-env GEM_PATH "$GEM_PATH:$GEM_DIR"
 set-env PYTHONUNBUFFERED true
 set-env PYTHONHOME /app/.heroku/python
